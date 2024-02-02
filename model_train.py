@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from transformers import HfArgumentParser, TrainingArguments
+from transformers import HfArgumentParser, TrainingArguments, AutoTokenizer
+from datasets import load_from_disk
 
 @dataclass
 class ModelArguments:
@@ -29,3 +30,40 @@ def main():
 
     model_args, peft_lora_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
+
+    ### Data
+    dataset = load_from_disk(data_args.dataset_path)
+    tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path)
+
+    def tokenize_function(data):
+        outputs = tokenizer(data['text'], truncation=True, max_length=model_args.max_length)
+        # truncation=True : 문장 잘림 허용, max_length 보다 문장이 길 경우, max_length까지만 남김
+        return outputs
+    
+    def collate_fn(data):
+        examples_batch = tokenizer.pad(data, padding="longest", return_tensors="pt")
+        examples_batch['labels'] = examples_batch['input_ids']
+        return examples_batch
+
+    train_dataset = dataset['train']
+    eval_dataset = dataset['valid']
+
+    max_train_samples = len(train_dataset)
+    if data_args.max_train_samples is not None:
+        max_train_samples = min(len(train_dataset), data_args.max_train_samples)
+        train_dataset = train_dataset.select(range(max_train_samples))
+
+    max_eval_samples = len(eval_dataset)
+    if data_args.max_eval_samples is not None:
+        max_eval_samples = min(len(eval_dataset), data_args.max_eval_samples)
+        eval_dataset = eval_dataset.select(range(max_eval_samples))
+
+    remove_column_keys = train_dataset.features.keys()
+
+    train_dataset_tokenized = train_dataset.map(tokenize_function,
+                                                batched=True,
+                                                remove_columns=remove_column_keys)
+
+    eval_data_tokenized = eval_dataset.map(tokenize_function,
+                                           batched=True,
+                                           remove_columns=remove_column_keys)
