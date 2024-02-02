@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-from transformers import HfArgumentParser, TrainingArguments, AutoTokenizer
+from transformers import HfArgumentParser, TrainingArguments, AutoTokenizer, AutoModelForCausalLM
 from datasets import load_from_disk
+from peft import get_peft_model, TaskType, LoraConfig
 
 @dataclass
 class ModelArguments:
@@ -67,3 +68,17 @@ def main():
     eval_data_tokenized = eval_dataset.map(tokenize_function,
                                            batched=True,
                                            remove_columns=remove_column_keys)
+    
+
+    ### Model
+    model = AutoModelForCausalLM.from_pretrained(model_args.model_name_or_path, return_dict=True)
+    peft_config = LoraConfig(
+        r=peft_lora_args.r,
+        lora_alpha=peft_lora_args.lora_alpha,
+        target_modules=["query_key_value"],
+        lora_dropout=peft_lora_args.lora_dropout,
+        bias="none",
+        task_type=TaskType.CAUSAL_LM
+        )
+    
+    model = get_peft_model(model, peft_config)
