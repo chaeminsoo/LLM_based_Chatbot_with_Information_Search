@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from transformers import HfArgumentParser, TrainingArguments, AutoTokenizer, AutoModelForCausalLM
+from transformers import HfArgumentParser, TrainingArguments, AutoTokenizer, AutoModelForCausalLM, Trainer
 from datasets import load_from_disk
 from peft import get_peft_model, TaskType, LoraConfig
 
@@ -82,3 +82,20 @@ def main():
         )
     
     model = get_peft_model(model, peft_config)
+
+
+    ### Training
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset_tokenized,
+        eval_dataset=eval_data_tokenized,
+        tokenizer=tokenizer,
+        data_collator=collate_fn
+    )
+
+    model.config.use_cache = False
+    trainer.train()
+
+    model.eval()
+    model.config.use_cache = True
