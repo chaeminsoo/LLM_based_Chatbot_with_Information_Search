@@ -99,3 +99,6 @@ def main():
 
     model.eval()
     model.config.use_cache = True
+
+if __name__=='__main__':
+    main()
