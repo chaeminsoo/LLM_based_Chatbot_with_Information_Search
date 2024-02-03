@@ -48,7 +48,7 @@ def main():
         return examples_batch
 
     train_dataset = dataset['train']
-    eval_dataset = dataset['valid']
+    eval_dataset = dataset['validation']
 
     max_train_samples = len(train_dataset)
     if data_args.max_train_samples is not None:
