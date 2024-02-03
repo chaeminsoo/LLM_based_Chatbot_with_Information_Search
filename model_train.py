@@ -97,8 +97,6 @@ def main():
     model.config.use_cache = False
     trainer.train()
 
-    model.eval()
-    model.config.use_cache = True
 
 if __name__=='__main__':
     main()
