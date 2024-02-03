@@ -1,7 +1,7 @@
 accelerate launch model_train.py\
     --model_name_or_path "EleutherAI/polyglot-ko-12.8b" \
     --dataset_path "{데이터 경로}" \
-    --max_steps 1000 \
+    --num_train_epochs 20 \
     --per_device_train_batch_size 16 \
     --per_device_eval_batch_size 16 \
     --gradient_accumulation_steps 1\
@@ -22,4 +22,6 @@ accelerate launch model_train.py\
     --do_train \
     --output_dir "{저장 경로}" \
     --save_total_limit 1 \
-    --load_best_model_at_end
+    --load_best_model_at_end \
+    --save_strategy 'steps' \
+    --evaluation_strategy "steps"
