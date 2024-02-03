@@ -22,4 +22,6 @@ accelerate launch train_instruct_tuned_model.py\
     --bf16 true \
     --warmup_ratio 0.06 \
     --do_train \
-    --output_dir "{저당 경로}/KoRani-12.8b"
+    --output_dir "{저당 경로}/KoRani-12.8b" \
+    --save_total_limit 1 \
+    --load_best_model_at_end
