@@ -1,5 +1,6 @@
+import torch
 from dataclasses import dataclass
-from transformers import HfArgumentParser, TrainingArguments, AutoTokenizer, AutoModelForCausalLM, Trainer
+from transformers import HfArgumentParser, TrainingArguments, AutoTokenizer, AutoModelForCausalLM, Trainer, BitsAndBytesConfig
 from datasets import load_from_disk
 from peft import get_peft_model, TaskType, LoraConfig
 
@@ -71,7 +72,16 @@ def main():
     
 
     ### Model
-    model = AutoModelForCausalLM.from_pretrained(model_args.model_name_or_path, return_dict=True)
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=torch.bfloat16
+        )
+
+    model = AutoModelForCausalLM.from_pretrained(model_args.model_name_or_path,
+                                                 quantization_config=bnb_config,
+                                                 return_dict=True)
     peft_config = LoraConfig(
         r=peft_lora_args.r,
         lora_alpha=peft_lora_args.lora_alpha,
