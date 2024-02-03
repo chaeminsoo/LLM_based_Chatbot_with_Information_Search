@@ -1,4 +1,4 @@
-accelerate launch train_instruct_tuned_model.py\
+accelerate launch model_train.py\
     --model_name_or_path "EleutherAI/polyglot-ko-12.8b" \
     --dataset_path "{데이터 경로}" \
     --max_steps 1000 \
