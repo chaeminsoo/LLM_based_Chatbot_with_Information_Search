@@ -12,16 +12,14 @@ accelerate launch model_train.py\
     --r 8 \
     --lora_dropout 0.05 \
     --lora_alpha 32 \
-    --evaluation_strategy "steps" \
     --eval_step 100 \
     --adam_beta1 0.9 \
     --adam_beta2 0.99 \
-    --save_strategy "epoch" \
     --max_eval_sample 100 \
     --lr_scheduler_type "linear" \
     --bf16 true \
     --warmup_ratio 0.06 \
     --do_train \
-    --output_dir "{저당 경로}/KoRani-12.8b" \
+    --output_dir "{저장 경로}" \
     --save_total_limit 1 \
     --load_best_model_at_end
