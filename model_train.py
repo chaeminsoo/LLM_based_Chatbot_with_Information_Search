@@ -1,8 +1,10 @@
-import torch
-from dataclasses import dataclass
-from transformers import HfArgumentParser, TrainingArguments, AutoTokenizer, AutoModelForCausalLM, Trainer, BitsAndBytesConfig
 from datasets import load_from_disk
-from peft import get_peft_model, TaskType, LoraConfig
+from dataclasses import dataclass
+import torch
+from transformers import AutoModelForCausalLM, BitsAndBytesConfig, AutoTokenizer, HfArgumentParser, TrainingArguments
+import transformers
+
+from peft import prepare_model_for_kbit_training, LoraConfig, get_peft_model
 
 @dataclass
 class ModelArguments:
@@ -32,81 +34,72 @@ def main():
 
     model_args, peft_lora_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
+    ### Load Quantized Model 
 
-    ### Data
-    dataset = load_from_disk(data_args.dataset_path)
-    tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path)
+    model_id = model_args.model_name_or_path
 
-    def tokenize_function(data):
-        outputs = tokenizer(data['text'], truncation=True, max_length=model_args.max_length)
-        # truncation=True : 문장 잘림 허용, max_length 보다 문장이 길 경우, max_length까지만 남김
-        return outputs
-    
-    def collate_fn(data):
-        examples_batch = tokenizer.pad(data, padding="longest", return_tensors="pt")
-        examples_batch['labels'] = examples_batch['input_ids']
-        return examples_batch
-
-    train_dataset = dataset['train']
-    eval_dataset = dataset['validation']
-
-    max_train_samples = len(train_dataset)
-    if data_args.max_train_samples is not None:
-        max_train_samples = min(len(train_dataset), data_args.max_train_samples)
-        train_dataset = train_dataset.select(range(max_train_samples))
-
-    max_eval_samples = len(eval_dataset)
-    if data_args.max_eval_samples is not None:
-        max_eval_samples = min(len(eval_dataset), data_args.max_eval_samples)
-        eval_dataset = eval_dataset.select(range(max_eval_samples))
-
-    remove_column_keys = train_dataset.features.keys()
-
-    train_dataset_tokenized = train_dataset.map(tokenize_function,
-                                                batched=True,
-                                                remove_columns=remove_column_keys)
-
-    eval_data_tokenized = eval_dataset.map(tokenize_function,
-                                           batched=True,
-                                           remove_columns=remove_column_keys)
-    
-
-    ### Model
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_use_double_quant=True,
         bnb_4bit_quant_type="nf4",
         bnb_4bit_compute_dtype=torch.bfloat16
-        )
+    )
 
-    model = AutoModelForCausalLM.from_pretrained(model_args.model_name_or_path,
-                                                 quantization_config=bnb_config,
-                                                 return_dict=True)
-    peft_config = LoraConfig(
-        r=peft_lora_args.r,
-        lora_alpha=peft_lora_args.lora_alpha,
-        target_modules=["query_key_value"],
-        lora_dropout=peft_lora_args.lora_dropout,
-        bias="none",
-        task_type=TaskType.CAUSAL_LM
-        )
-    
-    model = get_peft_model(model, peft_config)
+    model = AutoModelForCausalLM.from_pretrained(model_id,
+                                                quantization_config=bnb_config,
+                                                device_map="auto")
+    ############################################################################
 
 
-    ### Training
-    trainer = Trainer(
+
+    ### Data prepare
+
+    instruction_dataset = load_from_disk(data_args.dataset_path)
+
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+
+    data = instruction_dataset.map(lambda samples: tokenizer(samples["text"],truncation=True, max_length=256), batched=True)
+
+    ############################################################################
+
+
+
+    ### PEFT
+
+    model.gradient_checkpointing_enable()
+    model = prepare_model_for_kbit_training(model)
+
+    config = LoraConfig(
+        r = peft_lora_args.r,
+        lora_alpha = peft_lora_args.lora_alpha,
+        lora_dropout = peft_lora_args.lora_dropout,
+        target_modules = ["query_key_value"],
+        bias = "none",
+        task_type = "CAUSAL_LM"
+    )
+
+    model = get_peft_model(model, config)
+
+    ############################################################################
+
+
+
+    # Train
+
+    tokenizer.pad_token = tokenizer.eos_token
+
+    trainer = transformers.Trainer(
         model=model,
+        train_dataset=data['train'],
         args=training_args,
-        train_dataset=train_dataset_tokenized,
-        eval_dataset=eval_data_tokenized,
-        tokenizer=tokenizer,
-        data_collator=collate_fn
+        data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False),    
     )
 
     model.config.use_cache = False
     trainer.train()
+    ############################################################################
 
+    model.push_to_hub('ChaeMs/KoRani-5.8b')
 
-if __name__=='__main__':
+if __name__ == "__main__":
     main()
