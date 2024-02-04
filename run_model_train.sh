@@ -1,7 +1,7 @@
 accelerate launch model_train.py\
-    --model_name_or_path "EleutherAI/polyglot-ko-12.8b" \
+    --model_name_or_path "EleutherAI/polyglot-ko-5.8b" \
     --dataset_path "{데이터 경로}" \
-    --num_train_epochs 20 \
+    --num_train_epochs 1 \
     --per_device_train_batch_size 16 \
     --per_device_eval_batch_size 16 \
     --gradient_accumulation_steps 1\
@@ -20,7 +20,7 @@ accelerate launch model_train.py\
     --bf16 true \
     --warmup_ratio 0.06 \
     --do_train \
-    --output_dir "{저장 경로}" \
+    --output_dir "{train 결과 저장 경로}" \
     --save_total_limit 1 \
     --load_best_model_at_end \
     --save_strategy 'steps' \
