@@ -90,6 +90,20 @@ def scrap_google_news(keyword: str, limit=10):
 
     return back_ground_info, refs
 
+def search_prompt(info,target):
+    # return f'### User\n"{target}"에 대해 설명해줘. 답변은 "참고 자료"를 사용해서 만즐어줘.\n\n"참고 자료" : {info}\n\n### Bot\n'
+    return f'### User\n{info}\n`````\n 위 내용은 {target}에 대한 뉴스 기사들이야.\n 위 내용을 포함해서 {target}에 대해 자세히 설명해줘.\n\n### Bot\n'
+
+
+def search_answer(text,target):
+    result = pipe(search_prompt(text,target),
+                   return_full_text=False,
+                   do_sample=False,
+                   repetition_penalty=1.5,
+                   temperature=0.1,
+                   max_new_tokens=256)
+    return result[0]['generated_text'].split("###")[0]
+########################################################################
 
 ### gradio
 
