@@ -70,7 +70,6 @@ def scrap_google_news(keyword: str, limit=10):
     headers = {"User-Agent": os.getenv("USER_AGENT_INFO")}
 
     res = requests.get(google_search_url, params=params, headers=headers)
-
     soup = BeautifulSoup(res.content, 'html.parser')
 
     news_results = []
@@ -79,12 +78,17 @@ def scrap_google_news(keyword: str, limit=10):
             {
                 "link": el.find("a")["href"],
                 "title": el.select_one("div.MBeuO").get_text(),
-                "snippet": el.select_one(".GI74Re").get_text(),
                 "date": el.select_one(".OSrXXb").get_text()
             }
         )
 
-    return news_results
+    back_ground_info = ''
+    refs = []
+    for i in news_results:
+        back_ground_info += (i['title'] + '\n')
+        refs.append((i['date'],i['link']))
+
+    return back_ground_info, refs
 
 
 ### gradio
