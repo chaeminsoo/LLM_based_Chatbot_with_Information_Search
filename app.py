@@ -113,8 +113,15 @@ def user(message, history):
 
 def bot(history):
     if history[-1][0][0] == "/":
-        bot_msg = "검색"
-        user_msg = history[-1][0][1:]
+        back_ground_info, refs = scrap_google_news(history[-1][0][1:])
+
+        bot_msg = search_answer(back_ground_info,history[-1][0][1:])
+        bot_msg += '\n\n<참고 자료>'
+        for i in refs:
+            bot_msg += f'\n{i[0]} : {i[1]}'
+
+
+        user_msg = "검색 : " + history[-1][0][1:]
         history[-1] = [user_msg, bot_msg]
         return history
     else:
@@ -126,7 +133,7 @@ def bot(history):
 
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot()
-    msg = gr.Textbox(placeholder='검색을 하려면 "/"를 먼저 입력, (예시: "/세계 경제가 어때?")')
+    msg = gr.Textbox(placeholder='검색을 하려면 "/"를 먼저 입력, (예시: "/세계 경제")')
     clear = gr.Button("Clear")
 
     msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
@@ -134,4 +141,4 @@ with gr.Blocks() as demo:
     )
     clear.click(lambda: None, None, chatbot, queue=False)
 
-demo.launch()
+demo.launch(share=True)
