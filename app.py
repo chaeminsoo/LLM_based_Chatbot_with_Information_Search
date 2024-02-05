@@ -1,8 +1,10 @@
 import gradio as gr
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig, pipeline
 from peft import PeftModel, PeftConfig
 
+
+### LLM 모델 불러오기
 peft_model_id = "ChaeMs/KoRani-5.8b"
 
 config = PeftConfig.from_pretrained(peft_model_id)
@@ -23,9 +25,33 @@ model = PeftModel.from_pretrained(model, peft_model_id)
 tokenizer = AutoTokenizer.from_pretrained(config.base_model_name_or_path)
 
 model.eval()
+########################################################################
 
 
 
+### Functions
+pipe = pipeline(
+    "text-generation",
+    model=model,
+    tokenizer=tokenizer,
+    device_map="auto",
+    torch_dtype=torch.bfloat16
+)
+
+def build_prompt(user_input):
+    return f"### User\n{user_input}\n답변은 반드시 완성된 문장으로 생성해줘.\n\n### Bot\n"
+
+
+def make_answer(text):
+    result = pipe(build_prompt(text),
+                   return_full_text=False,
+                   do_sample=False,
+                   repetition_penalty=1.2,
+                   temperature=0.1,
+                   max_new_tokens=256)
+    return result[0]['generated_text'].split("###")[0]
+
+########################################################################
 
 
 ### gradio
@@ -41,8 +67,7 @@ def bot(history):
         history[-1] = [user_msg, bot_msg]
         return history
     else:
-      bot_msg = "대답"
-
+      bot_msg = make_answer(history[-1][0])
       user_msg = history[-1][0]
       history[-1] = [user_msg, bot_msg]
       return history
