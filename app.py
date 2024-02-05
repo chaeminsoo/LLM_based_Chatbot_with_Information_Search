@@ -3,6 +3,12 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig, pipeline
 from peft import PeftModel, PeftConfig
 
+import requests
+from bs4 import BeautifulSoup
+
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 ### LLM 모델 불러오기
 peft_model_id = "ChaeMs/KoRani-5.8b"
@@ -52,6 +58,33 @@ def make_answer(text):
     return result[0]['generated_text'].split("###")[0]
 
 ########################################################################
+
+
+
+### Google Search
+def scrap_google_news(keyword: str, limit=10):
+    google_search_url = 'https://www.google.com/search'
+
+    params = {'q': keyword, 'tbm': 'nws', 'num': limit}
+
+    headers = {"User-Agent": os.getenv("USER_AGENT_INFO")}
+
+    res = requests.get(google_search_url, params=params, headers=headers)
+
+    soup = BeautifulSoup(res.content, 'html.parser')
+
+    news_results = []
+    for el in soup.select("div.SoaBEf"):
+        news_results.append(
+            {
+                "link": el.find("a")["href"],
+                "title": el.select_one("div.MBeuO").get_text(),
+                "snippet": el.select_one(".GI74Re").get_text(),
+                "date": el.select_one(".OSrXXb").get_text()
+            }
+        )
+
+    return news_results
 
 
 ### gradio
