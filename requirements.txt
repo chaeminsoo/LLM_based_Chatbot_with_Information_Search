@@ -6,3 +6,6 @@ peft
 datasets
 gradio
 bitsandbytes
+python-dotenv
+requests
+bs4
