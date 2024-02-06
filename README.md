@@ -4,12 +4,13 @@
 
 
 ## Contents
-[1. Abstract](#1.-abstract)  
-[2. Model](#2.-model)  
-[3. Data](#3.-data)  
-[4. Architecture](#4.-architecture)  
-[5. Usage](#5.-usage)  
-[6. Details](#5.-details)
+[1. Abstract](#1-abstract)  
+[2. Model](#2-model)  
+[3. Train Data](#3-train-data)  
+[4. Architecture](#4-architecture)  
+[5. Usage](#5-usage)  
+[6. Details](#6-details)
+
 
 ## 1. Abstract
 
@@ -29,11 +30,23 @@
 <p align="center"><img width="150" alt="image" src="https://github.com/chaeminsoo/QnA_GPT/assets/79351899/b9a78bf5-0d80-435a-ba14-e288e8886f99"></p>
 
 - EleutherAI의 polyglot-ko-5.8b를 기반으로 Instruction Tuning한 모델
-- 
+    - 네이버 지식인과 한국어로 번역된 ShareGPT 데이터로 구성된 약 10만개의 Instruction 데이터 학습
+- QLoRA 기법을 사용해 Fine-tuning 진행
+    - LoRA 대비 약 30% 메모리 절약 
+    - 전체 파라미터의 약 0.1195%만을 train
+- DeepSpeed를 사용하여 Train 단계 최적화
+    - Out of Memory Error 해결
+    - 더 큰 Batch Size로 학습 허용
+    - Training time 단축
 
-## 3. Data
+<br>
 
+※ 동원 가능한 GPU 및 메모리가 부족했기 때문에, 최대한 이를 절약하는 방식을 사용
 
+## 3. Train Data
+
+- 네이버 지식인 데이터 ([beomi님의 데이터 사용](https://huggingface.co/datasets/beomi/KoAlpaca-v1.1a))
+- 한국어로 번역된 ShareGPT 데이터 ([junelee님의 데이터 사용](https://huggingface.co/datasets/junelee/sharegpt_deepl_ko))
 
 ## 4. Architecture
 
