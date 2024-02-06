@@ -29,7 +29,8 @@
 
 <p align="center"><img width="150" alt="image" src="https://github.com/chaeminsoo/QnA_GPT/assets/79351899/b9a78bf5-0d80-435a-ba14-e288e8886f99"></p>
 
-- EleutherAI의 polyglot-ko-5.8b를 기반으로 Instruction Tuning한 한국어 언어 모델
+- KoRani-5.8b
+    - EleutherAI의 polyglot-ko-5.8b를 기반으로 Instruction Tuning한 한국어 언어 모델
     - 네이버 지식인과 한국어로 번역된 ShareGPT 데이터로 구성된 약 10만개의 Instruction 데이터를 학습
 - QLoRA 기법을 사용해 Fine-tuning 진행
     - LoRA 대비 약 30% 메모리 절약 
