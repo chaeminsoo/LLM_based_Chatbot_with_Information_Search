@@ -7,7 +7,7 @@
 [1. Abstract](#1-abstract)  
 [2. Model](#2-model)  
 [3. Train Data](#3-train-data)  
-[4. Architecture](#4-architecture)  
+[4. Service Architecture](#4-service-architecture)  
 [5. Usage](#5-usage)  
 [6. Details](#6-details)
 
@@ -29,8 +29,8 @@
 
 <p align="center"><img width="150" alt="image" src="https://github.com/chaeminsoo/QnA_GPT/assets/79351899/b9a78bf5-0d80-435a-ba14-e288e8886f99"></p>
 
-- EleutherAI의 polyglot-ko-5.8b를 기반으로 Instruction Tuning한 모델
-    - 네이버 지식인과 한국어로 번역된 ShareGPT 데이터로 구성된 약 10만개의 Instruction 데이터 학습
+- EleutherAI의 polyglot-ko-5.8b를 기반으로 Instruction Tuning한 한국어 언어 모델
+    - 네이버 지식인과 한국어로 번역된 ShareGPT 데이터로 구성된 약 10만개의 Instruction 데이터를 학습
 - QLoRA 기법을 사용해 Fine-tuning 진행
     - LoRA 대비 약 30% 메모리 절약 
     - 전체 파라미터의 약 0.1195%만을 train
@@ -45,12 +45,13 @@
 
 ## 3. Train Data
 
-- 네이버 지식인 데이터 ([beomi님의 데이터 사용](https://huggingface.co/datasets/beomi/KoAlpaca-v1.1a))
-- 한국어로 번역된 ShareGPT 데이터 ([junelee님의 데이터 사용](https://huggingface.co/datasets/junelee/sharegpt_deepl_ko))
+- 네이버 지식인 데이터 21155개 ([beomi님의 데이터 사용](https://huggingface.co/datasets/beomi/KoAlpaca-v1.1a))
+- 한국어로 번역된 ShareGPT 데이터 84416개 ([junelee님의 데이터 사용](https://huggingface.co/datasets/junelee/sharegpt_deepl_ko))
+- 두 데이터를 Instruction 형태로 변환하여 사용
 
-## 4. Architecture
+## 4. Service Architecture
 
-<p align="center"></p>
+<p align="center"><img width="1558" alt="image" src="https://github.com/chaeminsoo/QnA_GPT/assets/79351899/b2d479c8-e930-48a5-ae84-3d148e614cf9"></p>
 
 ## 5. Usage
 ``` bash
@@ -60,7 +61,11 @@ pip install -r requirements.txt
 python app.py
 ```
 <br>
-<p align="center"></p>
+<p align="center"><img width="1336" alt="스크린샷 2024-02-05 오후 9 25 28" src="https://github.com/chaeminsoo/QnA_GPT/assets/79351899/0302ce17-00ff-42f2-9a6f-274a01291aae">< 정보 탐색 ></p>
+
+<br>
+
+<p align="center"><img width="1291" alt="스크린샷 2024-02-05 오후 9 27 08" src="https://github.com/chaeminsoo/QnA_GPT/assets/79351899/3b0714c0-d2b0-4599-a4e7-147cb1ca92d6">< 일반 대화 ></p>
 <br>
 
 
