@@ -38,7 +38,7 @@
 - DeepSpeed를 사용하여 Train 단계 최적화
     - Out of Memory Error 해결
     - 더 큰 Batch Size로 학습 허용
-    - Training time 단축
+
 
 <br>
 
